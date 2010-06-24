@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   creationComplete="creationCompleteHandler(event);">
+	<fx:Script>
+		<![CDATA[
+			import com.aaronhardy.javaUtils.install.JavaInstallUtil;
+			import com.aaronhardy.javaUtils.version.JavaValidationEvent;
+			import com.aaronhardy.javaUtils.version.JavaValidationUtil;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			
+			protected const WHEREIS_PATH:String = 'assets/whereis.exe';
+			protected const INSTALLER_PATH:String = 'assets/jre-6u20-windows-i586-iftw-rv.exe';
+			protected const REQUIRED_MAJOR:uint = 1;
+			protected const REQUIRED_MINOR:uint = 6;
+			protected const REQUIRED_REVISION:uint = 0;
+			protected const REQUIRED_UPDATE:uint = 18;
+			
+			protected var javaValidation:JavaValidationUtil;
+			protected var javaInstallation:JavaInstallUtil;
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				javaValidation = new JavaValidationUtil();
+				javaValidation.addEventListener(
+						JavaValidationEvent.JAVA_VALIDATED, javaValidatedHandler);
+				javaValidation.addEventListener(
+						JavaValidationEvent.JAVA_INVALIDATED, javaInvalidatedHandler);
+				javaValidation.addEventListener(
+						JavaValidationEvent.JAVA_NOT_FOUND, javaNotFoundHandler);
+				javaValidation.validate(
+						WHEREIS_PATH, 
+						REQUIRED_MAJOR,
+						REQUIRED_MINOR,
+						REQUIRED_REVISION,
+						REQUIRED_UPDATE);
+			}
+
+			protected function javaValidatedHandler(event:JavaValidationEvent):void
+			{
+				Alert.show('Congrats, your java runtime version (' + event.major + '.' + 
+						event.minor + '.' +	event.revision + '_' + event.update + ') is ' +
+						'sufficient for this application.');
+				cleanJavaValidation();
+			}
+			
+			protected function javaInvalidatedHandler(event:JavaValidationEvent):void
+			{
+				Alert.show('This application requires java runtime ' + 
+						formatVersion(REQUIRED_MAJOR, REQUIRED_MINOR, REQUIRED_REVISION, REQUIRED_UPDATE) +  
+						' or newer but version ' + 
+						formatVersion(event.major, event.minor, event.revision, event.update)+ 
+						' is currently installed. Would you like to install a newer runtime now?',
+						'Java not found', Alert.YES|Alert.NO, this, alertCloseHandler);
+				cleanJavaValidation();
+			}
+
+			protected function javaNotFoundHandler(event:JavaValidationEvent):void
+			{
+				Alert.show('No java runtime was found. Would you like to install the runtime now?',
+						'Java not found', Alert.YES|Alert.NO, this, alertCloseHandler);
+				cleanJavaValidation();
+			}
+			
+			protected function cleanJavaValidation():void
+			{
+				javaValidation.removeEventListener(
+					JavaValidationEvent.JAVA_VALIDATED, javaValidatedHandler);
+				javaValidation.removeEventListener(
+					JavaValidationEvent.JAVA_INVALIDATED, javaInvalidatedHandler);
+				javaValidation.removeEventListener(
+					JavaValidationEvent.JAVA_NOT_FOUND, javaNotFoundHandler);
+				javaValidation = null
+			}
+			
+			protected function alertCloseHandler(event:CloseEvent):void
+			{
+				if (event.detail == Alert.YES)
+				{
+					installJava();
+				}
+				else if (event.detail == Alert.NO)
+				{
+					exit();
+				}
+			}
+			
+			protected function installJava():void
+			{
+				javaInstallation = new JavaInstallUtil();
+				javaInstallation.addEventListener(Event.COMPLETE, installCompleteHandler);
+				javaInstallation.addEventListener(ErrorEvent.ERROR, installErrorHandler);
+				javaInstallation.install(INSTALLER_PATH, WHEREIS_PATH);
+			}
+
+			protected function installCompleteHandler(event:Event):void
+			{
+				Alert.show('The java runtime was successfully installed.');
+				cleanJavaInstallation()
+			}
+
+			protected function installErrorHandler(event:ErrorEvent):void
+			{
+				Alert.show('An error occurred while installing the java runtime:\n\n' + event.text);
+				cleanJavaInstallation()
+			}
+
+			protected function cleanJavaInstallation():void
+			{
+				javaInstallation.removeEventListener(Event.COMPLETE, installCompleteHandler);
+				javaInstallation.removeEventListener(ErrorEvent.ERROR, installErrorHandler);
+				javaInstallation = null;
+			}
+			
+			protected function formatVersion(major:uint, minor:uint, revision:uint, update:uint):String
+			{
+				return major + '.' + minor + '.' + revision + '_' + update;
+			}	
+				
+		]]>
+	</fx:Script>
+</s:WindowedApplication>
