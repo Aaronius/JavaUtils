@@ -2,7 +2,7 @@
 <s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
-					   creationComplete="creationCompleteHandler(event);">
+					   creationComplete="creationCompleteHandler(event);" viewSourceURL="srcview/index.html">
 	<fx:Script>
 		<![CDATA[
 			import com.aaronhardy.javaUtils.install.JavaInstallUtil;
@@ -15,15 +15,31 @@
 			
 			protected const WHEREIS_PATH:String = 'assets/whereis.exe';
 			protected const INSTALLER_PATH:String = 'assets/jre-6u20-windows-i586-iftw-rv.exe';
+			
 			protected const REQUIRED_MAJOR:uint = 1;
-			protected const REQUIRED_MINOR:uint = 6;
-			protected const REQUIRED_REVISION:uint = 0;
-			protected const REQUIRED_UPDATE:uint = 18;
+			protected const REQUIRED_MINOR:uint = 8;
+			protected const REQUIRED_REVISION:uint = 5;
+			protected const REQUIRED_UPDATE:uint = 20;
 			
 			protected var javaValidation:JavaValidationUtil;
 			protected var javaInstallation:JavaInstallUtil;
 			
 			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				if (Capabilities.os.indexOf("Windows") >= 0)
+				{
+					validateJava();
+				}
+				else
+				{
+					Alert.show('Sorry, these java utilities are only to be used with Windows.');
+				}
+			}
+			
+			/**
+			 * Start off by determining if the user has the required JRE or newer installed.
+			 */
+			protected function validateJava():void
 			{
 				javaValidation = new JavaValidationUtil();
 				javaValidation.addEventListener(
@@ -89,6 +105,10 @@
 				}
 			}
 			
+			/**
+			 * If the user doesn't have an adequate JRE installed and chooses to install an
+			 * adequate JRE, start the installation process.
+			 */
 			protected function installJava():void
 			{
 				javaInstallation = new JavaInstallUtil();
@@ -116,6 +136,11 @@
 				javaInstallation = null;
 			}
 			
+			/**
+			 * Formats version segments into a string according to java specs.
+			 * 
+			 * @see http://java.sun.com/j2se/versioning_naming.html
+			 */
 			protected function formatVersion(major:uint, minor:uint, revision:uint, update:uint):String
 			{
 				return major + '.' + minor + '.' + revision + '_' + update;
