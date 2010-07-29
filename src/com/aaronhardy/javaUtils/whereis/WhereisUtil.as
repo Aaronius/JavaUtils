@@ -72,7 +72,8 @@ package com.aaronhardy.javaUtils.whereis
 			info.workingDirectory = File.applicationDirectory;
 			
 			var args:Vector.<String> = new Vector.<String>();
-			args.push('-p'); // searches in the Windows paths (the directories specified in the PATH environment variable)
+			args.push('-r');
+			args.push('c:\\Windows\\SysWOW64;c:\\Windows\\System32'); // searches in the Windows paths (the directories specified in the PATH environment variable)
 			args.push('-s'); // succinct output. Prints path only
 			args.push(exeToFind);
 			info.arguments = args;

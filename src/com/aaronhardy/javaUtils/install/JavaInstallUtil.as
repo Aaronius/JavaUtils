@@ -43,7 +43,7 @@ package com.aaronhardy.javaUtils.install
 	/**
 	 * Event dispatched when the installation completes successfully.
 	 */
-	[Event(name="complete",type="flash.events.Event")]
+	[Event(name="complete",type="com.aaronhardy.javaUtils.install.JavaInstallEvent")]
 	
 	/**
 	 * Event dispatched when an error occurred while running the installation.
@@ -80,41 +80,41 @@ package com.aaronhardy.javaUtils.install
 		// Find Cmd path
 		//////////////////////////////////////////////////////////////////////
 		
-		protected var whereisUtil:WhereisUtil;
+		protected var cmdPathWhereisUtil:WhereisUtil;
 		
 		/**
 		 * Determines the path to cmd.
 		 */
 		protected function getCmdPath():void
 		{
-			whereisUtil = new WhereisUtil();
-			addWhereisListeners();
-			whereisUtil.search('cmd.exe', whereisPath);
+			cmdPathWhereisUtil = new WhereisUtil();
+			addCmdWhereisListeners();
+			cmdPathWhereisUtil.search('cmd.exe', whereisPath);
 		}
 		
 		/**
 		 * Adds listeners to the whereis utility.
 		 */
-		protected function addWhereisListeners():void
+		protected function addCmdWhereisListeners():void
 		{
-			if (whereisUtil)
+			if (cmdPathWhereisUtil)
 			{
-				whereisUtil.addEventListener(WhereisEvent.EXECUTABLE_FOUND, cmdFoundHandler);
-				whereisUtil.addEventListener(WhereisEvent.EXECUTABLE_NOT_FOUND, cmdNotFoundHandler);
-				whereisUtil.addEventListener(ErrorEvent.ERROR, cmdSearchErrorHandler);
+				cmdPathWhereisUtil.addEventListener(WhereisEvent.EXECUTABLE_FOUND, cmdFoundHandler);
+				cmdPathWhereisUtil.addEventListener(WhereisEvent.EXECUTABLE_NOT_FOUND, cmdNotFoundHandler);
+				cmdPathWhereisUtil.addEventListener(ErrorEvent.ERROR, cmdSearchErrorHandler);
 			}
 		}
 		
 		/**
 		 * Removes listeners from the whereis utility.
 		 */
-		protected function removeWhereisListeners():void
+		protected function removeCmdWhereisListeners():void
 		{
-			if (whereisUtil)
+			if (cmdPathWhereisUtil)
 			{
-				whereisUtil.removeEventListener(WhereisEvent.EXECUTABLE_FOUND, cmdFoundHandler);
-				whereisUtil.removeEventListener(WhereisEvent.EXECUTABLE_NOT_FOUND, cmdNotFoundHandler);
-				whereisUtil.removeEventListener(ErrorEvent.ERROR, cmdSearchErrorHandler);
+				cmdPathWhereisUtil.removeEventListener(WhereisEvent.EXECUTABLE_FOUND, cmdFoundHandler);
+				cmdPathWhereisUtil.removeEventListener(WhereisEvent.EXECUTABLE_NOT_FOUND, cmdNotFoundHandler);
+				cmdPathWhereisUtil.removeEventListener(ErrorEvent.ERROR, cmdSearchErrorHandler);
 			}
 		}
 		
@@ -148,13 +148,13 @@ package com.aaronhardy.javaUtils.install
 		/**
 		 * Stops utility if running and cleans references for garbage collection.
 		 */
-		protected function cleanWhereisUtil():void
+		protected function cleanCmdPathWhereisUtil():void
 		{
-			if (whereisUtil)
+			if (cmdPathWhereisUtil)
 			{
-				removeWhereisListeners();
-				whereisUtil.stopAndCleanUp();
-				whereisUtil = null;
+				removeCmdWhereisListeners();
+				cmdPathWhereisUtil.stopAndCleanUp();
+				cmdPathWhereisUtil = null;
 			}
 		}	
 		
@@ -250,29 +250,18 @@ package com.aaronhardy.javaUtils.install
 			// the exit code will be 0 even though the install process did not complete.
 			if (event.exitCode == 0)
 			{
-				dispatchEvent(new Event(Event.COMPLETE));
+				getJavaPath();
 			}
 			else
 			{
 				dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, false, 
 						'The java installation process exited with error code ' + event.exitCode + '.'));
+				stopAndCleanUp();
 			}
-			stopAndCleanUp();
 		}
 		
-		/**
-		 * Stops whereis utility and install process, if running, and cleans references for 
-		 * garbage collection.
-		 */
-		public function stopAndCleanUp():void
+		protected function cleanInstallProcess():void
 		{
-			if (whereisUtil)
-			{
-				removeWhereisListeners();
-				whereisUtil.stopAndCleanUp();
-				whereisUtil = null;
-			}
-			
 			if (installProcess)
 			{
 				removeInstallListeners();
@@ -284,6 +273,100 @@ package com.aaronhardy.javaUtils.install
 				
 				installProcess = null;
 			}
+		}
+		
+		//////////////////////////////////////////////////////////////////////
+		// Retrieve Java Location
+		//////////////////////////////////////////////////////////////////////
+		
+		protected var javaPathWhereisUtil:WhereisUtil;
+		
+		/**
+		 * Determines the path to Java.
+		 */
+		protected function getJavaPath():void
+		{
+			javaPathWhereisUtil = new WhereisUtil();
+			addJavaWhereisListeners();
+			javaPathWhereisUtil.search('java.exe', whereisPath);
+		}
+		
+		/**
+		 * Adds listeners to the whereis utility.
+		 */
+		protected function addJavaWhereisListeners():void
+		{
+			if (javaPathWhereisUtil)
+			{
+				javaPathWhereisUtil.addEventListener(WhereisEvent.EXECUTABLE_FOUND, javaFoundHandler);
+				javaPathWhereisUtil.addEventListener(WhereisEvent.EXECUTABLE_NOT_FOUND, javaNotFoundHandler);
+				javaPathWhereisUtil.addEventListener(ErrorEvent.ERROR, javaSearchErrorHandler);
+			}
+		}
+		
+		/**
+		 * Removes listeners from the whereis utility.
+		 */
+		protected function removeJavaWhereisListeners():void
+		{
+			if (javaPathWhereisUtil)
+			{
+				javaPathWhereisUtil.removeEventListener(WhereisEvent.EXECUTABLE_FOUND, javaFoundHandler);
+				javaPathWhereisUtil.removeEventListener(WhereisEvent.EXECUTABLE_NOT_FOUND, javaNotFoundHandler);
+				javaPathWhereisUtil.removeEventListener(ErrorEvent.ERROR, javaSearchErrorHandler);
+			}
+		}
+		
+		/**
+		 * Handles the event notifying that java was found.
+		 */
+		protected function javaFoundHandler(event:WhereisEvent):void
+		{
+			dispatchEvent(new JavaInstallEvent(JavaInstallEvent.COMPLETE, String(event.paths[0])));
+			stopAndCleanUp();
+		}
+		
+		/**
+		 * Handles the event notifying that java was not found.
+		 */
+		protected function javaNotFoundHandler(event:WhereisEvent):void
+		{
+			dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, false, 
+				'Unable to find java.exe after installation.'));
+			stopAndCleanUp();
+		}
+		
+		/**
+		 * Handles the event notifying that an error occured while searching for java.
+		 */
+		protected function javaSearchErrorHandler(event:ErrorEvent):void
+		{
+			dispatchEvent(event);
+			stopAndCleanUp();
+		}
+		
+		/**
+		 * Stops utility if running and cleans references for garbage collection.
+		 */
+		protected function cleanJavaPathWhereisUtil():void
+		{
+			if (javaPathWhereisUtil)
+			{
+				removeJavaWhereisListeners();
+				javaPathWhereisUtil.stopAndCleanUp();
+				javaPathWhereisUtil = null;
+			}
+		}	
+		
+		/**
+		 * Stops whereis utility and install process, if running, and cleans references for 
+		 * garbage collection.
+		 */
+		public function stopAndCleanUp():void
+		{
+			cleanCmdPathWhereisUtil();
+			cleanInstallProcess();
+			cleanJavaPathWhereisUtil();
 		}
 	}
 }

@@ -109,6 +109,7 @@ package com.aaronhardy.javaUtils.version
 		//////////////////////////////////////////////////////////////////////
 		
 		protected var whereisUtil:WhereisUtil;
+		protected var javaPath:String;
 		
 		/**
 		 * Searches the Windows path (as specified in the Windows PATH variable) to find the java
@@ -152,7 +153,8 @@ package com.aaronhardy.javaUtils.version
 		 */
 		protected function javaFoundHandler(event:WhereisEvent):void
 		{
-			getVersion(String(event.paths[0]));
+			javaPath = String(event.paths[0]); 
+			getVersion(javaPath);
 			cleanWhereisUtil();
 		}
 		
@@ -268,12 +270,12 @@ package com.aaronhardy.javaUtils.version
 						[minMajor, minMinor, minRevision, minUpdate]))
 				{
 					dispatchEvent(new JavaValidationEvent(JavaValidationEvent.JAVA_VALIDATED,
-							major, minor, revision, update));
+							major, minor, revision, update, javaPath));
 				}
 				else
 				{
 					dispatchEvent(new JavaValidationEvent(JavaValidationEvent.JAVA_INVALIDATED,
-							major, minor, revision, update));
+							major, minor, revision, update, javaPath));
 				}
 			}
 			else

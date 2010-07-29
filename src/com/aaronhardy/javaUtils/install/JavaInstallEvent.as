@@ -20,40 +20,25 @@
 // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
-package com.aaronhardy.javaUtils.version
+package com.aaronhardy.javaUtils.install
 {
 	import flash.events.Event;
 	
-	/**
-	 * Event reporting on the validation of the currently installed JRE. The currently installed
-	 * JRE version information is available for JAVA_VALIDATED and JAVA_INVALIDATED but not 
-	 * JAVA_NOT_FOUND.
-	 */
-	public class JavaValidationEvent extends Event
+	public class JavaInstallEvent extends Event
 	{
-		public static const JAVA_VALIDATED:String = 'javaValidated';
-		public static const JAVA_INVALIDATED:String = 'javaInvalidated';
-		public static const JAVA_NOT_FOUND:String = 'javaNotFound';
-		public var major:uint;
-		public var minor:uint;
-		public var revision:uint;
-		public var update:uint;
+		public static const COMPLETE:String = 'complete';
+		
 		public var javaPath:String;
 		
-		public function JavaValidationEvent(type:String, major:uint=0, minor:uint=0, 
-				revision:uint=0, update:uint=0, javaPath:String=null)
+		public function JavaInstallEvent(type:String, javaPath:String)
 		{
 			super(type);
-			this.major = major;
-			this.minor = minor;
-			this.revision = revision;
-			this.update = update;
 			this.javaPath = javaPath;
 		}
 		
 		override public function clone():Event
 		{
-			return new JavaValidationEvent(type, major, minor, revision, update, javaPath);
+			return new JavaInstallEvent(type, javaPath);
 		}
 	}
 }

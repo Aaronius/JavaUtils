@@ -5,6 +5,7 @@
 					   creationComplete="creationCompleteHandler(event);" viewSourceURL="srcview/index.html">
 	<fx:Script>
 		<![CDATA[
+			import com.aaronhardy.javaUtils.install.JavaInstallEvent;
 			import com.aaronhardy.javaUtils.install.JavaInstallUtil;
 			import com.aaronhardy.javaUtils.version.JavaValidationEvent;
 			import com.aaronhardy.javaUtils.version.JavaValidationUtil;
@@ -112,12 +113,12 @@
 			protected function installJava():void
 			{
 				javaInstallation = new JavaInstallUtil();
-				javaInstallation.addEventListener(Event.COMPLETE, installCompleteHandler);
+				javaInstallation.addEventListener(JavaInstallEvent.COMPLETE, installCompleteHandler);
 				javaInstallation.addEventListener(ErrorEvent.ERROR, installErrorHandler);
 				javaInstallation.install(INSTALLER_PATH, WHEREIS_PATH);
 			}
 
-			protected function installCompleteHandler(event:Event):void
+			protected function installCompleteHandler(event:JavaInstallEvent):void
 			{
 				Alert.show('The java runtime was successfully installed.');
 				cleanJavaInstallation()
@@ -131,7 +132,7 @@
 
 			protected function cleanJavaInstallation():void
 			{
-				javaInstallation.removeEventListener(Event.COMPLETE, installCompleteHandler);
+				javaInstallation.removeEventListener(JavaInstallEvent.COMPLETE, installCompleteHandler);
 				javaInstallation.removeEventListener(ErrorEvent.ERROR, installErrorHandler);
 				javaInstallation = null;
 			}
