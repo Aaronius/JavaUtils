@@ -1,1 +1,0 @@
-c:\Program Files\Adobe\Adobe Flash Builder 4 Plug-in\sdks\4.0.0\bin\adt" -package -storetype pkcs12 -keystore c:\Development\JavaManagement\JavaUtils\cert.p12 -target native c:\Development\JavaManagement\JavaUtils\JavaUtils.exe c:\Development\JavaManagement\JavaUtils\bin-debug\JavaUtils-app.xml -C c:\Development\JavaManagement\JavaUtils\bin-debug .
